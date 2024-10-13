@@ -1,0 +1,16 @@
+{
+  "name": "action-reaction",
+  "version": "0.0.1",
+  "description": "A super small state library",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "none yet ..."
+  },
+  "keywords": [
+    "reactive",
+    "javascript"
+  ],
+  "author": "darren.jones@hey.com",
+  "license": "Unlicense"
+}
