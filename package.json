@@ -1,6 +1,6 @@
 {
   "name": "action-reaction",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A super small state library",
   "main": "index.js",
   "type": "module",
