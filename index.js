@@ -1,4 +1,4 @@
-function actionReaction(state={},actions={},templates={}){
+export default function actionReaction(state={},actions={},templates={}){
   const localStorageKey = document.querySelector("[data-base][data-local-storage]") ? document.querySelector("[data-base][data-local-storage]").dataset.localStorage : null
   if (localStorageKey && localStorage.getItem(localStorageKey)) state =  {...state,...JSON.parse(localStorage.getItem(localStorageKey))}
     const update = (transformer,withCalcs=true) => {   
@@ -6,11 +6,13 @@ function actionReaction(state={},actions={},templates={}){
      if(newState){
      Object.entries(newState).forEach(([prop,value]) => {
        state[prop]  = value
+       if(localStorageKey) localStorage.setItem(localStorageKey,JSON.stringify(state))
        document.querySelectorAll(`[data-reaction="${prop}"]`).forEach(element => render(element,value))
        if(withCalcs) document.querySelectorAll(`[data-reaction="${prop}"][data-calculation],[data-base][data-calculation]`).forEach(el => update(actions[el.dataset.calculation](state),false))
+       document.querySelectorAll("[data-hidden]").forEach(el => el.hidden = actions[el.dataset.hidden](state))
+       document.querySelectorAll("[data-attribs]").forEach(el => Object.entries(actions[el.dataset.attribs](state)).forEach(([key,val]) => el.setAttribute(key,val)))
        if(document.querySelector("[data-base][data-debug]")) console.log(JSON.stringify(state))
    })}
-      if(localStorageKey) localStorage.setItem(localStorageKey,JSON.stringify(state))
     }   
 function render(element,value,template = templates[element.dataset.template || element.dataset.reaction]){
     if(template){
@@ -30,6 +32,5 @@ function render(element,value,template = templates[element.dataset.template || e
               ,element.dataset.action]
       if(actions[action]) element.addEventListener(event,e => update(actions[action](e)))  
   }
-  update({...state,...actions?.initiate(state)})
+  update(actions.initiate ? {...state,...actions.initiate(state)} : {...state})
 }
-export default actionReaction
