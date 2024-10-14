@@ -1,18 +1,16 @@
-function actionReaction(state={},actions={},templates={},config={}){
-  if (config.localStorageKey && localStorage.getItem(config.LocalStorageKey)) state =  {...state,...JSON.parse(localStorage.getItem(config.LocalStorageKey))}
-    const calcs = Object.entries(state).reduce((calcs,calc) => typeof calc[1] === "function" ? [...calcs,calc] : calcs,[])
-    const update = transformer => {   
+function actionReaction(state={},actions={},templates={}){
+  const localStorageKey = document.querySelector("[data-base][data-local-storage]") ? document.querySelector("[data-base][data-local-storage]").dataset.localStorage : null
+  if (localStorageKey && localStorage.getItem(localStorageKey)) state =  {...state,...JSON.parse(localStorage.getItem(localStorageKey))}
+    const update = (transformer,withCalcs=true) => {   
       const newState = typeof(transformer) === "function" ? transformer(state) : Array.isArray(transformer) ? transformer.reduce((s,t) => ({...s,...t({...state,...s})}),{}) : transformer
-      if(newState){
-      Object.entries(newState).forEach(([prop,value]) => {
-      if(!(typeof value === "function")){
-        state[prop] = value
-        document.querySelectorAll(`[data-reaction="${prop}"]`).forEach(element => render(element,value))
-      }
-     if(config.debug) console.log(JSON.stringify(state))
+     if(newState){
+     Object.entries(newState).forEach(([prop,value]) => {
+       state[prop]  = value
+       document.querySelectorAll(`[data-reaction="${prop}"]`).forEach(element => render(element,value))
+       if(withCalcs) document.querySelectorAll(`[data-reaction="${prop}"][data-calculation],[data-base][data-calculation]`).forEach(el => update(actions[el.dataset.calculation](state),false))
+       if(document.querySelector("[data-base][data-debug]")) console.log(JSON.stringify(state))
    })}
-      calcs.forEach(calc => state[calc[0]]=calc[1](state))
-      if(config.localStorageKey) localStorage.setItem(config.LocalStorageKey,JSON.stringify(state))
+      if(localStorageKey) localStorage.setItem(localStorageKey,JSON.stringify(state))
     }   
 function render(element,value,template = templates[element.dataset.template || element.dataset.reaction]){
     if(template){
@@ -32,6 +30,6 @@ function render(element,value,template = templates[element.dataset.template || e
               ,element.dataset.action]
       if(actions[action]) element.addEventListener(event,e => update(actions[action](e)))  
   }
-  update(actions.initiate ? {...state,...actions?.initiate(state)} : {...state})
+  update({...state,...actions?.initiate(state)})
 }
 export default actionReaction
